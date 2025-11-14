@@ -1,190 +1,199 @@
-🧠 Media Content Analytics Platform
+<h1 align="center">🧠 Media Content Analytics Platform</h1>
 
+<p align="center">
+An end-to-end <b>cloud-native data engineering platform</b> for YouTube analytics.  
+This project ingests, transforms, and models YouTube datasets into <b>analytics-ready tables</b> enabling dashboards and actionable insights.
+</p>
 
-🎯 Project Overview
+---
 
-The Media Content Analytics Platform is a cloud-based end-to-end data pipeline built using Python, Google BigQuery, and Colab.
-It ingests raw YouTube analytics data, cleans and transforms it, applies data quality rules, preserves historical changes (SCD Type-2), and builds a Star Schema for visualization-ready dashboards.
+<h2>📘 Table of Contents</h2>
 
-📊 Architecture Overview
-CSV Files → Staging (Raw) → Bronze (Typed) → Silver (Curated) → Gold (Analytics)
-                                               ↓
-                                         dim_video (SCD2)
+<ul>
+  <li><a href="#overview">⭐ Overview</a></li>
+  <li><a href="#architecture">🏗️ Architecture</a></li>
+  <li><a href="#features">⚙️ Pipeline Layers</a></li>
+  <li><a href="#data-source">📈 Data Sources</a></li>
+  <li><a href="#stack">🛠 Technology Stack</a></li>
+  <li><a href="#structure">📂 Project Structure</a></li>
+  <li><a href="#setup">⚙️ Setup & Execution</a></li>
+  <li><a href="#modeling">🌟 Dimensional Modeling</a></li>
+  <li><a href="#dq">🧪 Data Quality Rules</a></li>
+  <li><a href="#enhancements">🚀 Future Enhancements</a></li>
+  <li><a href="#author">👤 Author</a></li>
+</ul>
 
+---
 
-🔹 Technologies Used
-Component	Technology
-Language	Python (Pandas, BigQuery SDK)
-Cloud Data Warehouse	Google BigQuery
-Development Environment	Google Colabs
-Data Source	YouTube Analytics CSVs, Kaggle News Dataset
-Modeling	Star Schema (Fact + Dimension)
-Historical Tracking	Slowly Changing Dimension Type-2
-⚙️ Data Pipeline Layers
-1️⃣ Staging Layer
+<h2 id="overview">⭐ Overview</h2>
 
-Goal: Load raw CSVs into BigQuery with minimal cleaning.
+<p>
+The <b>Media Content Analytics Platform</b> is a cloud-first data engineering solution for YouTube analytics.  
+It supports end-to-end data processing, from raw ingestion to analytics-ready outputs with historical tracking via <b>SCD Type-2</b>.
+</p>
 
-Table	Source	Description
-staging_aggregated_video	Aggregated_Metrics_By_Video.csv	Video-level performance metrics
-staging_aggregated_country	Aggregated_Metrics_By_Country_And_Subscriber_Status.csv	Views by country and subscription type
-staging_all_comments	All_Comments_Final.csv	YouTube comments dataset
-staging_video_performance	Video_Performance_Over_Time.csv	Daily video performance trends
+<ul>
+  <li>📊 Load and clean YouTube analytics CSV datasets</li>
+  <li>🔄 Apply multi-layer transformations (Raw → Bronze → Silver → Gold)</li>
+  <li>🧮 Track historical changes in metadata (SCD Type-2)</li>
+  <li>📈 Deliver dashboards and KPI tables for insights</li>
+</ul>
 
-Cleaning Performed
+---
 
-Trim and normalize column names
+<h2 id="architecture">🏗️ Architecture</h2>
 
-Drop rows with missing primary keys
+<pre>
+CSV Inputs
+↓
+Staging (Raw Layer)
+↓
+Bronze (Typed & Cleaned)
+↓
+Silver (Business Logic Applied)
+↓
+Gold (Analytics & Star Schema)
+↓
+dim_video (SCD Type-2)
+</pre>
 
-Fix malformed quotes in CSVs
+<ul>
+  <li><b>Raw Layer:</b> Original YouTube CSV datasets</li>
+  <li><b>Bronze:</b> Standardized, typed, and cleaned</li>
+  <li><b>Silver:</b> Derived metrics, spam filtering, enriched data</li>
+  <li><b>Gold:</b> Analytics-ready fact tables for dashboards</li>
+</ul>
 
-Remove null or malformed rows
+---
 
-2️⃣ Bronze Layer
+<h2 id="features">⚙️ Pipeline Layers</h2>
 
-Goal: Structure and standardize staging data with proper data types.
+<h3>1️⃣ Staging (Raw Layer)</h3>
+<ul>
+  <li>Minimal processing, load datasets as-is</li>
+  <li>Tables: <code>staging_aggregated_video</code>, <code>staging_aggregated_country</code>, <code>staging_all_comments</code>, <code>staging_video_performance</code></li>
+  <li>Cleaning: trim columns, drop null keys, fix CSV issues</li>
+</ul>
 
-Table	Description
-bronze_aggregated_video	Parsed timestamps, cast numeric columns, converted duration strings to seconds
-bronze_country_metrics	Cleaned and standardized subscription flags, fixed types
-bronze_comments	Removed spam/invalid comments, converted dates
+<h3>2️⃣ Bronze Layer</h3>
+<ul>
+  <li>Standardize formats and data types</li>
+  <li>Parse durations, cast timestamps and numerics</li>
+  <li>Remove invalid comment records</li>
+</ul>
 
-UDF Used:
+<h3>3️⃣ Silver Layer</h3>
+<ul>
+  <li>Apply business logic</li>
+  <li>Spam detection, subscriber vs non-subscriber analysis</li>
+  <li>Derived KPIs: engagement %, avg watch time, CTR</li>
+  <li>Join datasets for enriched insights</li>
+</ul>
 
-CREATE OR REPLACE FUNCTION parse_duration(d STRING)
-RETURNS INT64
-LANGUAGE js AS
-"""
-  if (!d || d.trim() === '') return 0;
-  const parts = d.split(':').map(Number);
-  if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
-  if (parts.length === 2) return parts[0]*60 + parts[1];
-  return parts[0] || 0;
-"""
+<h3>4️⃣ Gold Layer (Analytics Ready)</h3>
+<ul>
+  <li>Dashboard-ready fact tables with partitions and clustering</li>
+  <li>Tables: <code>gold_video_metrics</code>, <code>gold_country_metrics</code>, <code>gold_comments_clean</code>, <code>gold_creator_dashboard</code></li>
+</ul>
 
-3️⃣ Silver Layer
+---
 
-Goal: Apply business logic and derived metrics for analytical use.
+<h2 id="data-source">📈 Data Sources</h2>
 
-Filter invalid or spam comments
+<table>
+  <tr><td><b>Source Files:</b></td><td>YouTube Analytics CSVs, Kaggle</td></tr>
+  <tr><td><b>Tables:</b></td><td>Aggregated metrics, comments, video performance</td></tr>
+</table>
 
-Aggregate subscriber vs non-subscriber metrics
+---
 
-Add derived KPIs (engagement %, average watch time, etc.)
+<h2 id="stack">🛠 Technology Stack</h2>
 
-Join across datasets for enrichment
+<table>
+  <tr><th>Component</th><th>Technology</th></tr>
+  <tr><td>Programming</td><td>Python (Pandas, BigQuery SDK)</td></tr>
+  <tr><td>Data Warehouse</td><td>Google BigQuery</td></tr>
+  <tr><td>Development</td><td>Google Colab</td></tr>
+  <tr><td>Modeling</td><td>Star Schema, SCD Type-2</td></tr>
+</table>
 
-4️⃣ Gold Layer (Analytics-Ready)
+---
 
-Goal: Final clean, partitioned, and clustered tables for dashboards.
+<h2 id="structure">📂 Project Structure</h2>
 
-Gold Table	Description	Partition / Cluster
-gold_video_metrics	Core video-level KPIs	Partition: video_publish_date, Cluster: video_id
-gold_country_metrics	Metrics per video & country	Cluster: video_id, country_code
-gold_comments_clean	Filtered comments with spam detection	Partition: comment_date, Cluster: video_id
-gold_creator_dashboard	Creator-centric summary dashboard	No partition/cluster
-🧮 Dimensional Modeling
-⭐ Schema Type: Star Schema
-Type	Tables	Description
-Fact Tables	gold_video_metrics, gold_country_metrics, gold_comments_clean	Contain measurable KPIs
-Dimension Table	dim_video	Holds descriptive attributes of videos (supports SCD Type-2)
-Example Relationship:
-                  dim_video (SCD2)
-                         |
-     -------------------------------------------------
-     |                      |                       |
-gold_video_metrics   gold_country_metrics   gold_comments_clean
-
-🔁 SCD Type-2 Implementation
-
-The dim_video table maintains historical versions of each video’s metadata (e.g., title changes).
-
-Column	Description
-surrogate_key	UUID Primary Key
-video_id	Natural key (from YouTube)
-video_title	Video name
-effective_from	When record became active
-effective_to	When record was replaced (NULL = active)
-is_current	TRUE = active version
-
-MERGE Logic:
-
-Detect changed video titles
-
-Expire old record (is_current=FALSE, set effective_to)
-
-Insert new current record with updated title
-
-➡️ Ensures full historical traceability of metadata
-
-🧩 Data Quality (DQ) Rules Applied
-Check Type	Rule	Purpose
-Schema Consistency	SAFE_CAST used for all numeric fields	Prevent load failure
-Primary Key Validation	Drop rows with null video IDs	Ensure data integrity
-Spam Filtering	Flag comments containing links or too short	Data cleanliness
-Duplicate Handling	Group by unique video ID	Prevent double-count
-Date Parsing	SAFE.PARSE_TIMESTAMP / SAFE.PARSE_DATE	Handle malformed dates
-🚀 Execution Flow
-
-Authenticate Google account in Colab
-
-Load and clean CSVs → upload to BigQuery staging tables
-
-Run ETL transformation notebook → build Bronze → Gold layers
-
-Run SCD2 merge script → maintain historical dimension
-
-Validate sample data and explore via dashboards (Streamlit / Looker / Power BI)
-
-📈 Sample Output
-Gold Table	Rows	Description
-gold_video_metrics	223	Video performance KPIs
-gold_country_metrics	54,905	Country-wise engagement
-gold_comments_clean	8,252	Clean comments dataset
-gold_creator_dashboard	223	Aggregated creator summary
-💡 Key Highlights (Hidden Gems)
-
-✅ Automated ETL with clean column normalization
-
-✅ UDF-based duration parsing using JavaScript in BigQuery
-
-✅ Data Quality checks embedded in every step
-
-✅ SCD Type-2 dimension — preserves video title history
-
-✅ Star Schema modeling for optimized analytics
-
-✅ Cloud-native (serverless, scalable, low maintenance)
-
-📂 Folder Structure Example
+<pre>
 media-content-analytics/
 │
-├── notebooks/
-│   ├── 01_staging_load.ipynb
-│   ├── 02_bronze_gold_etl.ipynb
-│   └── 03_scd2_dim_video.ipynb
-│
-├── data/
-│   ├── Aggregated_Metrics_By_Video.csv
-│   ├── Aggregated_Metrics_By_Country_And_Subscriber_Status.csv
-│   ├── All_Comments_Final.csv
-│   └── Video_Performance_Over_Time.csv
-│
-├── README.md
-└── requirements.txt
+├── Raw_datasets/
+├── Transformed_datasets/
+├── source_code/
+│   ├── 3_Gold_Dashboard_&_DQ.ipynb
+│   ├── Complete_code.ipynb
+├── Presentation.pdf
+├── Requirements.txt
+└── README.md
+</pre>
 
+---
 
+<h2 id="setup">⚙️ Setup & Execution</h2>
 
-Ankala Santhkumar
-Data Engineering Enthusiast | Cloud & Analytics | BigQuery | Python | Streamlit
+<ol>
+  <li>Authenticate Google account in Colab</li>
+  <li>Load & preprocess CSVs → upload to BigQuery</li>
+  <li>Run ETL notebooks to build Bronze → Silver → Gold</li>
+  <li>Execute SCD Type-2 merge logic</li>
+  <li>Validate data & explore insights via dashboards (Looker/Power BI/Streamlit)</li>
+</ol>
 
-🏁 Future Enhancements
+---
 
-Add Streamlit Dashboard for real-time exploration
+<h2 id="modeling">🌟 Dimensional Modeling (Star Schema)</h2>
 
-Integrate Sentiment Analysis on gold_comments_clean
+<ul>
+  <li>Fact Tables: <code>gold_video_metrics</code>, <code>gold_country_metrics</code>, <code>gold_comments_clean</code></li>
+  <li>Dimension Table: <code>dim_video</code> (SCD Type-2)</li>
+</ul>
 
-Create automated DQ alert system
+<pre>
+dim_video (SCD2)
+      │
+      ├── gold_video_metrics
+      ├── gold_country_metrics
+      └── gold_comments_clean
+</pre>
 
-Schedule pipeline with Cloud Composer / Airflow
+---
+
+<h2 id="dq">🧪 Data Quality Rules</h2>
+
+<table>
+  <tr><th>Check</th><th>Description</th><th>Purpose</th></tr>
+  <tr><td>Schema Consistency</td><td>SAFE_CAST for numeric fields</td><td>Prevent load failures</td></tr>
+  <tr><td>Primary Key Validation</td><td>Drop null keys</td><td>Integrity guarantee</td></tr>
+  <tr><td>Spam Filtering</td><td>Remove comments with links/low quality</td><td>Clean analytics</td></tr>
+  <tr><td>Duplicate Handling</td><td>Deduplicate by video_id</td><td>Prevent skewed metrics</td></tr>
+  <tr><td>Date Parsing</td><td>SAFE.PARSE_* functions</td><td>Robust handling</td></tr>
+</table>
+
+---
+
+<h2 id="enhancements">🚀 Future Enhancements</h2>
+
+<ul>
+  <li>Streamlit dashboard for real-time insights</li>
+  <li>Sentiment analysis on comments dataset</li>
+  <li>Automated DQ alert system</li>
+  <li>Airflow/Cloud Composer for scheduled ETL</li>
+  <li>Expand star schema with additional dimensions</li>
+</ul>
+
+---
+
+<h2 id="author">👤 Author</h2>
+
+<p>
+👨‍💻 <b>Ankala Santhkumar</b><br>
+📧 <i>santhkumar2020@gmail.com/i><br>
+🔗 <a href="https://github.com/Ankalasanthkumar" target="_blank">GitHub Profile</a>
+</p>
