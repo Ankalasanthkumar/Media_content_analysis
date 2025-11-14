@@ -194,6 +194,6 @@ dim_video (SCD2)
 
 <p>
 👨‍💻 <b>Ankala Santhkumar</b><br>
-📧 <i>santhkumar2020@gmail.com/i><br>
+📧 <i>santhkumar2020@gmail.com/<i><br>
 🔗 <a href="https://github.com/Ankalasanthkumar" target="_blank">GitHub Profile</a>
 </p>
